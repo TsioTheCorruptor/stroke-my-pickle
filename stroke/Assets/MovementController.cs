@@ -1,30 +1,32 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class MovementController : MonoBehaviour
 {
+    public TextMeshProUGUI ammoText;
+
     public float jamEmptySpeed = 1.0f;
+    public float jamRefillSpeed = 1.0f;
     public Transform jam;
-    private float startJamYPos;
+    public float maxJamYPos;
+    public float minJamYPos;
     float startY;
     float endY;
 
+    public int ammoFromOrb = 1;
     public int maxAmmo = 5;
     private int ammoLeft = 5;
     private float jamAmount;
+    private float sizeAmount;
 
-    public float startSize = 3.0f;
-    public float sizeReduceAmount = 0.5f;
+    public float jamManMaxSize = 3.0f;
+    public float jamManMinSize = 0.5f;
     public float sizeReduceSpeed = 1.0f;
+    public float sizeEnlargeSpeed = 1.0f;
     float startSizeY;
     float endSizeY;
-
-    //public Transform Spoon;
-    //public float spoonSpeed = 1.0f;
-    //private float startSpoonRot;
-
-    private float curJamYPos;
 
     public GameObject jamBall;
     public Transform jamBallSpawn;
@@ -33,8 +35,11 @@ public class MovementController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        startJamYPos = jam.localPosition.y;
-        jamAmount = 0.55f / maxAmmo;
+        ammoLeft = maxAmmo;
+        ammoText.text = ammoLeft + " / " + maxAmmo;
+
+        jamAmount = (Mathf.Abs(maxJamYPos-minJamYPos)) / maxAmmo;
+        sizeAmount = (Mathf.Abs(jamManMaxSize - jamManMinSize)) / maxAmmo;
     }
 
     // Update is called once per frame
@@ -49,19 +54,19 @@ public class MovementController : MonoBehaviour
         {
             ammoLeft = maxAmmo;
 
+            ammoText.text = ammoLeft + " / " + maxAmmo;
+
             StopCoroutine("JamAnimation");
             StopCoroutine("SizeChange");
 
             startY = jam.localPosition.y;
-            endY = startJamYPos;
+            endY = maxJamYPos;
             StartCoroutine("JamAnimation");
 
             startSizeY = transform.localScale.y;
-            endSizeY = startSize;
+            endSizeY = jamManMaxSize;
             StartCoroutine("SizeChange");
         }
-
-        //print(ammoLeft);
     }
 
     void Shoot()
@@ -73,16 +78,17 @@ public class MovementController : MonoBehaviour
             curJamBall.transform.SetParent(null);
 
             --ammoLeft;
+            ammoText.text = ammoLeft + " / " + maxAmmo;
 
             StopCoroutine("JamAnimation");
             StopCoroutine("SizeChange");
 
             startY = jam.localPosition.y;
-            endY = startJamYPos - (jamAmount * (maxAmmo - ammoLeft));
+            endY = maxJamYPos - (jamAmount * (maxAmmo - ammoLeft));
             StartCoroutine("JamAnimation");
 
             startSizeY = transform.localScale.y;
-            endSizeY = startSize - (sizeReduceAmount * (maxAmmo - ammoLeft));
+            endSizeY = jamManMaxSize - (sizeAmount * (maxAmmo - ammoLeft));
             StartCoroutine("SizeChange");
         }
     }
@@ -109,6 +115,34 @@ public class MovementController : MonoBehaviour
             i += Time.deltaTime * jamEmptySpeed;
             jam.localPosition = Vector2.Lerp(startPos, new Vector2(0.0f, endY), i);
             yield return null;
+        }
+    }
+
+    
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        // When ammo orb is collected
+        if (other.CompareTag("Orb"))
+        {
+            if (ammoLeft<maxAmmo)
+            {
+                ammoLeft = Mathf.Min(ammoLeft + ammoFromOrb, maxAmmo);
+
+                ammoText.text = ammoLeft + " / " + maxAmmo;
+
+                StopCoroutine("JamAnimation");
+                StopCoroutine("SizeChange");
+
+                startY = jam.localPosition.y;
+                endY = maxJamYPos - (jamAmount * (maxAmmo - ammoLeft));
+                StartCoroutine("JamAnimation");
+
+                startSizeY = transform.localScale.y;
+                endSizeY = jamManMaxSize - (sizeAmount * (maxAmmo - ammoLeft));
+                StartCoroutine("SizeChange");
+
+                other.gameObject.SetActive(false);
+            }
         }
     }
 }
