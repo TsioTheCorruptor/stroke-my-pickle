@@ -5,6 +5,12 @@ TagManager:
   serializedVersion: 2
   tags:
   - ground
+  - next room
+  - Jam Ball
+  - rightwall
+  - leftwall
+  - monster
+  - tongue_damage
   layers:
   - Default
   - TransparentFX

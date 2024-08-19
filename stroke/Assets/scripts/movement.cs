@@ -5,11 +5,15 @@ using UnityEngine;
 
 public class movement : MonoBehaviour
 {
+    int leftorright = 0;
+    public Transform gunpos;
+    bool once=false;
+    bool once2 = false;
     public Animator animator;
     public float vel;
-    SpriteRenderer spriteRenderer;
+   public SpriteRenderer spriteRenderer;
    public float jumppower = 225f;
-    Rigidbody2D rb;
+   public Rigidbody2D rb;
 public int MovementSpeed= 3;
     public Transform pos;
    public BoxCollider2D bcl;
@@ -26,7 +30,11 @@ public int MovementSpeed= 3;
     void FixedUpdate()
     
     {
-        if (rb.velocity.y<0)
+     
+       
+
+
+        if (rb.velocity.y<-1)
         {
             animator.SetBool("in air", true);
         }
@@ -38,28 +46,71 @@ public int MovementSpeed= 3;
         {
             
         }
+
+
+
         if ((Input.GetKey(KeyCode.LeftArrow) == true && Input.GetKey(KeyCode.RightArrow) == true)|| (Input.GetKey(KeyCode.RightArrow) == false && Input.GetKey(KeyCode.LeftArrow) == false))
         {
             animator.SetBool("is running", false);
         }
+
+
+
+
+
         if(Input.GetKey(KeyCode.RightArrow)==true&& Input.GetKey(KeyCode.LeftArrow) ==false)
         {
+            leftorright = 0;
+            if (Input.GetKey(KeyCode.DownArrow) == true)
+            {
+                gunpos.rotation = Quaternion.Euler(0,0 ,-45 );
+            }
+            else
+            {
+                gunpos.rotation = Quaternion.Euler(0, 0, 0);
+            }
+      
             pos.position +=Vector3.right*MovementSpeed*Time.deltaTime;
             spriteRenderer.flipX =false;
+           
+           
             animator.SetBool("is running", true);
         }
       
+
+
+
+
+
         if (Input.GetKey(KeyCode.LeftArrow) == true&& Input.GetKey(KeyCode.RightArrow) == false)
         {
+            leftorright = 1;
+            if(Input.GetKey(KeyCode.DownArrow)==true)
+            {
+                gunpos.rotation = Quaternion.Euler(0, 0,225 );
+            }
+            else
+            {
+                gunpos.rotation = Quaternion.Euler(0,0, 180);
+            }
+            
             pos.position -= Vector3.right * MovementSpeed * Time.deltaTime;
             spriteRenderer.flipX = true;
+            
+          
             animator.SetBool("is running", true);
         }
       
+
+
+
+
+
         if (Input.GetKey(KeyCode.Space) == true|| Input.GetKey(KeyCode.UpArrow))
         {
             jump();
         }
+      
     }
     private void OnTriggerStay2D(Collider2D collision)
     {
