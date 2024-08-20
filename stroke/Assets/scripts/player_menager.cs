@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class MovementController : MonoBehaviour
 {
+    public float damaged_timer = 2;
+    bool damaged = false;
+    public Animator animator;
     public Transform ballparent;
     public float jamEmptySpeed = 1.0f;
     public Transform jam;
@@ -79,11 +82,15 @@ public class MovementController : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.tag== "tongue_damage")
+        if(damaged==false)
         {
-            ammoLeft -= 3;
+ if(collision.tag== "tongue_damage")
+        {
+            ammoLeft =ammoLeft-3;
             if (ammoLeft >= 0)
             {
+                    startdamagedstate();
+                    Invoke("enddamagedstate", 2f);
                 StopCoroutine("SizeChange");
 
                 startY = jam.localPosition.y;
@@ -98,6 +105,8 @@ public class MovementController : MonoBehaviour
                 ammoLeft = 0;
           
         }
+        }
+       
     }
     void Shoot()
     {
@@ -147,5 +156,15 @@ public class MovementController : MonoBehaviour
             jam.localPosition = Vector2.Lerp(startPos, new Vector2(0.0f, endY), i);
             yield return null;
         }
+    }
+    void startdamagedstate()
+    {
+        damaged = true;
+        animator.SetBool("damaged", true);
+    }
+    void enddamagedstate()
+    {
+        damaged = false;
+        animator.SetBool("damaged", false);
     }
 }
