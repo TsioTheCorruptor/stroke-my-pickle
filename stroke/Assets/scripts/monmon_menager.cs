@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class monmon_menager : MonoBehaviour
 {
+    public int max_health = 50;
+     int monster_health;
    public bool disablelickattack = false;
     float timer;
     public float jumpdelay = 3;
@@ -21,15 +24,23 @@ public Animator animator;
     public Transform leftpoint;
     int rightorleft = 1;
     public float movespeed = 5;
+
+    public Image monsterBar;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        monster_health = max_health;
+        monsterBar.fillAmount = (float)monster_health / (float)max_health;
     }
 
     // Update is called once per frame
     void Update()
     {
+        if(monster_health <=0)
+        {
+            animator.SetBool("death", true);
+        }
         if(Vector2.Distance(playerpos.position,monsterpos.position)<=rage_distance)
         {
             if(timer>=jumpdelay)
@@ -89,6 +100,13 @@ public Animator animator;
             disablecollider();
             stopmovement = true;
             animator.SetBool("attack", true);
+        }
+        if (collision.tag == "Jam Ball")
+        {
+           Destroy(collision.gameObject);
+            Debug.Log("ok");
+            monster_health = monster_health - 1;
+            monsterBar.fillAmount = (float)monster_health / (float)max_health;
         }
     }
     void disablecollider()

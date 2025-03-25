@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class functions : MonoBehaviour
 {
+    public Transform slimeballspawn;
+    public GameObject slimeball;
     public Transform monster;
     public CapsuleCollider2D monbcl1;
     public CapsuleCollider2D monbcl2;
@@ -12,6 +15,7 @@ public class functions : MonoBehaviour
     public Transform monpos;
     public GameObject damagebox;
     public GameObject smalldamagebox;
+    float ballspeed = 500;
     // Start is called before the first frame update
     public void createdamage()
     {
@@ -42,5 +46,24 @@ public class functions : MonoBehaviour
         monbcl1.enabled = true;
         mon_animator.SetBool("jump", false);
         monmon_Menager_script.disablelickattack = false;
+    }
+    public void gameover_win()
+    {
+        SceneManager.LoadScene(sceneName: "win");
+    }
+    public void gameover_lose()
+    {
+        SceneManager.LoadScene(sceneName: "hub");
+    }
+    public void launchballes()
+    {
+     GameObject temp=   Instantiate(slimeball,slimeballspawn.position,slimeballspawn.rotation);
+        Destroy(temp, 5);
+        temp.GetComponent<Rigidbody2D>().AddForce(slimeballspawn.right * ballspeed);
+       // slimeballspawn.rotation= Quaternion.Euler(0, 0, 180);
+       GameObject temp2 = Instantiate(slimeball, slimeballspawn.position, slimeballspawn.rotation);
+        Destroy(temp2, 5);
+        temp2.GetComponent<Rigidbody2D>().AddForce(-slimeballspawn.right * ballspeed);
+       // slimeballspawn.rotation = Quaternion.Euler(0, 0, 180);
     }
 }

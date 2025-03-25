@@ -1,110 +1,143 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MovementController : MonoBehaviour
 {
+    public Animator death_animator;
     public float damaged_timer = 2;
     bool damaged = false;
     public Animator animator;
     public Transform ballparent;
+
+    public TextMeshProUGUI ammoText;
+
     public float jamEmptySpeed = 1.0f;
+    public float jamRefillSpeed = 1.0f;
     public Transform jam;
-    private float startJamYPos;
+    public float maxJamYPos;
+    public float minJamYPos;
     float startY;
     float endY;
 
+    public int ammoFromOrb = 1;
     public int maxAmmo = 5;
     private int ammoLeft = 5;
     private float jamAmount;
+    private float sizeAmount;
 
-    public float startSize = 3.0f;
-    public float sizeReduceAmount = 0.5f;
+    public float jamManMaxSize = 3.0f;
+    public float jamManMinSize = 0.5f;
     public float sizeReduceSpeed = 1.0f;
+    public float sizeEnlargeSpeed = 1.0f;
     float startSizeY;
     float endSizeY;
-
-    //public Transform Spoon;
-    //public float spoonSpeed = 1.0f;
-    //private float startSpoonRot;
-
-    private float curJamYPos;
 
     public GameObject jamBall;
     public Transform jamBallSpawn;
     public float jamBallSpeed = 700f;
 
+    public Image toastJam;
+    public GameObject orb;
+
     // Start is called before the first frame update
     void Start()
     {
-        startJamYPos = jam.localPosition.y;
-        jamAmount = 0.55f / maxAmmo;
-
         ammoLeft = maxAmmo;
+        ammoText.text = ammoLeft + " / " + maxAmmo;
+        toastJam.fillAmount = (float)ammoLeft / (float)maxAmmo;
 
-        
-        StopCoroutine("SizeChange");
-
-        startY = jam.localPosition.y;
-        endY = startJamYPos;
-       
-
-        startSizeY = transform.localScale.y;
-        endSizeY = startSize;
-        StartCoroutine("SizeChange");
+        jamAmount = (Mathf.Abs(maxJamYPos - minJamYPos)) / maxAmmo;
+        sizeAmount = (Mathf.Abs(jamManMaxSize - jamManMinSize)) / maxAmmo;
     }
 
     // Update is called once per frame
     void Update()
     {
+        if(ammoLeft<=0)
+        {
+            death_animator.SetBool("dead", true);
+        }
         if (Input.GetKeyDown(KeyCode.S))
         {
             Shoot();
         }
 
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            ammoLeft = maxAmmo;
+        //if (Input.GetKeyDown(KeyCode.R))
+        //{
+        //    ammoLeft = maxAmmo;
 
-            //StopCoroutine("JamAnimation");
-            StopCoroutine("SizeChange");
+        //    ammoText.text = ammoLeft + " / " + maxAmmo;
+        //    toastJam.fillAmount = (float)ammoLeft / (float)maxAmmo;
 
-            startY = jam.localPosition.y;
-            endY = startJamYPos;
-           // StartCoroutine("JamAnimation");
+        //    StopCoroutine("JamAnimation");
+        //    StopCoroutine("SizeChange");
 
-            startSizeY = transform.localScale.y;
-            endSizeY = startSize;
-            StartCoroutine("SizeChange");
-        }
+        //    startY = jam.localPosition.y;
+        //    endY = maxJamYPos;
+        //    StartCoroutine("JamAnimation");
+
+        //    startSizeY = transform.localScale.y;
+        //    endSizeY = jamManMaxSize;
+        //    StartCoroutine("SizeChange");
+        //}
 
         //print(ammoLeft);
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(damaged==false)
+        if (collision.CompareTag("Orb"))
         {
- if(collision.tag== "tongue_damage")
-        {
-            ammoLeft =ammoLeft-3;
-            if (ammoLeft >= 0)
+            if (ammoLeft < maxAmmo)
             {
-                    startdamagedstate();
-                    Invoke("enddamagedstate", 2f);
+                orb.SetActive(false);
+                Invoke("setjamreload", 5);
+
+                ammoLeft = Mathf.Min(ammoLeft + ammoFromOrb, maxAmmo);
+
+                ammoText.text = ammoLeft + " / " + maxAmmo;
+                toastJam.fillAmount = (float)ammoLeft / (float)maxAmmo;
+
+                StopCoroutine("JamAnimation");
                 StopCoroutine("SizeChange");
 
                 startY = jam.localPosition.y;
-                endY = startJamYPos - (jamAmount * (maxAmmo - ammoLeft));
-                // StartCoroutine("JamAnimation");
+                endY = maxJamYPos - (jamAmount * (maxAmmo - ammoLeft));
+                StartCoroutine("JamAnimation");
 
                 startSizeY = transform.localScale.y;
-                endSizeY = startSize - (sizeReduceAmount * (maxAmmo - ammoLeft));
+                endSizeY = jamManMaxSize - (sizeAmount * (maxAmmo - ammoLeft));
+                StartCoroutine("SizeChange");
+
+                //collision.gameObject.SetActive(false);
+            }
+        }
+        if (damaged == false)
+        {
+            if (collision.tag == "tongue_damage")
+            {
+                ammoLeft = Mathf.Max(ammoLeft - 3, 0);
+
+                startdamagedstate();
+                Invoke("enddamagedstate", 2f);
+
+
+                ammoText.text = ammoLeft + " / " + maxAmmo;
+                toastJam.fillAmount = (float)ammoLeft / (float)maxAmmo;
+
+                StopCoroutine("JamAnimation");
+                StopCoroutine("SizeChange");
+
+                startY = jam.localPosition.y;
+                endY = maxJamYPos - (jamAmount * (maxAmmo - ammoLeft));
+                StartCoroutine("JamAnimation");
+
+                startSizeY = transform.localScale.y;
+                endSizeY = jamManMaxSize - (sizeAmount * (maxAmmo - ammoLeft));
                 StartCoroutine("SizeChange");
             }
-            else
-                ammoLeft = 0;
-          
-        }
         }
        
     }
@@ -118,17 +151,20 @@ public class MovementController : MonoBehaviour
             curJamBall.GetComponent<Rigidbody2D>().AddForce(jamBallSpawn.right * jamBallSpeed, 0);
             curJamBall.transform.SetParent(ballparent);
             Destroy(curJamBall, 5);
-            --ammoLeft;
 
-            //StopCoroutine("JamAnimation");
+            --ammoLeft;
+            ammoText.text = ammoLeft + " / " + maxAmmo;
+            toastJam.fillAmount = (float)ammoLeft / (float)maxAmmo;
+
+            StopCoroutine("JamAnimation");
             StopCoroutine("SizeChange");
 
             startY = jam.localPosition.y;
-            endY = startJamYPos - (jamAmount * (maxAmmo - ammoLeft));
-           // StartCoroutine("JamAnimation");
+            endY = maxJamYPos - (jamAmount * (maxAmmo - ammoLeft));
+            StartCoroutine("JamAnimation");
 
             startSizeY = transform.localScale.y;
-            endSizeY = startSize - (sizeReduceAmount * (maxAmmo - ammoLeft));
+            endSizeY = jamManMaxSize - (sizeAmount * (maxAmmo - ammoLeft));
             StartCoroutine("SizeChange");
         }
     }
@@ -166,5 +202,9 @@ public class MovementController : MonoBehaviour
     {
         damaged = false;
         animator.SetBool("damaged", false);
+    }
+    void setjamreload()
+    {
+        orb.SetActive(true);
     }
 }

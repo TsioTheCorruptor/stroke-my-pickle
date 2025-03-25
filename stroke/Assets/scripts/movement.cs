@@ -84,6 +84,7 @@ public int MovementSpeed= 3;
 
         if (Input.GetKey(KeyCode.LeftArrow) == true&& Input.GetKey(KeyCode.RightArrow) == false)
         {
+
             leftorright = 1;
             if(Input.GetKey(KeyCode.DownArrow)==true)
             {

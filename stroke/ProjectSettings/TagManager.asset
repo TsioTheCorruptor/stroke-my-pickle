@@ -11,6 +11,7 @@ TagManager:
   - leftwall
   - monster
   - tongue_damage
+  - Orb
   layers:
   - Default
   - TransparentFX
